@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  goapp:
+    build: .
+    ports: 
+      - "8080:8080"
+    volumes:
+      - .:/app
+    container_name: goapp
+    networks:
+      - app-network
+    tty: true
+    depends_on:
+      - mysql-fts
+    links:
+      - redis-server
+
+  mysql-fts:
+    image: mysql:latest
+    command: --innodb-use-native-aio=0
+    container_name: mysql-fts
+    restart: always
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=fts_bookshelf
+      - MYSQL_ROOT_PASSWORD=root 
+    networks:
+      - app-network
+    
+  redis-server:
+    container_name: redis-fts
+    image: 'redis'
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
